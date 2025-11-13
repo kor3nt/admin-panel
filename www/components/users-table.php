@@ -104,17 +104,17 @@ ob_start();
 
         <div id="pagination">
             <?php
-            // Pagination
-            $baseUrl = '?';
-            if (!empty($search)) {
-                $baseUrl .= 'search=' . urlencode($search) . '&';
-            }
+                // Pagination
+                $baseUrl = '?';
+                if (!empty($search)) {
+                    $baseUrl .= 'search=' . urlencode($search) . '&';
+                }
 
-            for ($i = 1; $i <= $totalPages; $i++) {
+                for ($i = 1; $i <= $totalPages; $i++) {
 
-                $active = ($i == $page) ? 'active' : '';
-                echo "<a href='{$baseUrl}page=$i' class='$active'>$i</a>";
-            }
+                    $active = ($i == $page) ? 'active' : '';
+                    echo "<a href='{$baseUrl}page=$i' class='$active'>$i</a>";
+                }
             ?>
         </div>
     </main>

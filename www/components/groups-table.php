@@ -96,7 +96,7 @@ ob_start();
 
         <div id="pagination">
             <?php
-            // Pagination
+                // Pagination
                 $baseUrl = '?';
                 if (!empty($search)) {
                     $baseUrl .= 'search=' . urlencode($search) . '&';
