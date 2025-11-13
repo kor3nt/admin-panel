@@ -81,7 +81,7 @@ ob_start();
                                         <td>".$row['username']."</td>
                                         <td>".$row['name']."</td>
                                         <td>".$row['surname']."</td>
-                                        <td>".$row['birthday']."</td>
+                                        <td>".date('d.m.Y', strtotime($row['birthday']))."</td>
                                         <td>
                                            <a href='#' class='edit-btn'>
                                                 Edit
