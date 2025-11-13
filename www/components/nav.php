@@ -4,8 +4,8 @@ ob_start();
 
 <nav class="nav">
     <ul>
-        <li><a href="../lists.html">Users</a></li>
-        <li><a href="table-groups.php">Groups</a></li>
+        <li><a href="users-table.php">Users</a></li>
+        <li><a href="groups-table.php">Groups</a></li>
     </ul>
 </nav>
 

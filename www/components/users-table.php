@@ -1,4 +1,6 @@
 <?php
+$title = "Users list";
+
 require_once './functions/connection.php';
 
 $connect = start_connection();
@@ -16,18 +18,20 @@ $offset = ($page - 1) * $resultsPerPage;
 $where = "";
 if (!empty($search)) {
     $safeSearch = $connect->real_escape_string($search);
-    $where = "WHERE name LIKE '%$safeSearch%'";
+    $where = "WHERE username LIKE '%$safeSearch%'
+        OR name LIKE '%$safeSearch%'
+        OR surname LIKE '%$safeSearch%'";
 }
 
-// --- Count results ---
-$countQuery = "SELECT COUNT(*) as total FROM `groups` $where";
+// Count results
+$countQuery = "SELECT COUNT(*) as total FROM `users` $where";
 $countResult = $connect->query($countQuery);
 $countRow = $countResult->fetch_assoc();
 $totalRows = $countRow['total'];
 $totalPages = ceil($totalRows / $resultsPerPage);
 
-// --- Get results ---
-$query = "SELECT * FROM `groups` $where LIMIT $resultsPerPage OFFSET $offset";
+// Get results
+$query = "SELECT * FROM `users` $where LIMIT $resultsPerPage OFFSET $offset";
 $result = $connect->query($query);
 
 stop_connection($connect);
@@ -36,19 +40,19 @@ ob_start();
 ?>
 <div class="page-container">
     <header>
-        <h1>Group Management</h1>
+        <h1>User Management</h1>
 
         <div class="header-actions">
             <button id="add-btn" class="primary-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                Create group
+                Create User
             </button>
 
             <form method="GET" class="search-box">
                 <input type="text" name="search" id="search" placeholder="Search...">
-                <button type="submit" class="primary-btn">
+                <button type="submit" name="search-btn" class="primary-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                    <span>Search</span>
+                    Search
                 </button>
             </form>
         </div>
@@ -60,55 +64,33 @@ ob_start();
                 <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Name</th>
+                    <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Birth Date</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
-                    <?php
-                        if ($totalRows > 0) {
-                            while($row = $result->fetch_assoc()){
-                                echo "<tr>
-                                        <td>".$row['id']."</td>
-                                        <td>".$row['name']."</td>
-                                        <td>
-                                           <a href='#' class='edit-btn'>
-                                                Edit
-                                            </a>
-                                            <a href='#' class='delete-btn'>
-                                                Delete
-                                            </a>
-                                        </td>
-                                    </tr>";
-                            }
-                        } else {
-                            echo "<tr>
-                                    <td colspan='3' class='text-center'>No records</td>
-                                </tr>";
-                        }
-                    ?>
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.first}</td>
+                        <td>${user.last}</td>
+                        <td>${user.birth}</td>
+                        <td>
+                            <a href="#" class="edit-btn">
+                                Edit
+                            </a>
+                            <a href="#" class="delete-btn">
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
-        <div id="pagination">
-            <?php
-                $baseUrl = '?';
-                if (!empty($search)) {
-                    $baseUrl .= 'search=' . urlencode($search) . '&';
-                }
-
-                for ($i = 1; $i <= $totalPages; $i++) {
-
-                    $active = ($i == $page) ? 'active' : '';
-                    echo "<a href='{$baseUrl}page=$i' class='$active'>$i</a>";
-                }
-            ?>
-        </div>
-
+        <div id="pagination"></div>
     </main>
 </div>
-
-<?php
-$body = ob_get_clean();
-?>

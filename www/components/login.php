@@ -1,4 +1,6 @@
 <?php
+$title = "Login";
+
 ob_start();
 ?>
 

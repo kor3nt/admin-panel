@@ -1,7 +1,9 @@
 <?php
 //require_once "./components/login.php";
 require_once "./components/nav.php";
-require_once "./components/table-groups.php";
+require_once "./components/groups-table.php";
+
+$title = isset($title) ? $title.' | ' : '';
 ?>
 
 <!DOCTYPE html>
@@ -9,7 +11,7 @@ require_once "./components/table-groups.php";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Admin Panel</title>
+    <title><?= $title ?>Admin Panel</title>
 
     <link rel="stylesheet" href="./style.css">
 
