@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User list | Admin Panel</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha384-1H217gwSVyLSIfaLxHbE7dRb3v4mYCKbpQvzx0cegeju1MVsGrX5xXxAvs/HgeFs"
+            crossorigin="anonymous"></script>
+
+</head>
+<body>
+    <nav class="nav">
+        <ul>
+            <li><a href="lists.html">Users</a></li>
+            <li><a href="components/table-groups.php">Groups</a></li>
+        </ul>
+    </nav>
+
+    <div class="page-container">
+        <header>
+            <h1>User Management</h1>
+
+            <div class="header-actions">
+                <button id="add-btn" class="primary-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Create User
+                </button>
+
+                <form method="GET" class="search-box">
+                    <input type="text" name="search" id="search" placeholder="Search...">
+                    <button type="submit" name="search-btn" class="primary-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+                        Search
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <main>
+            <div class="table-container">
+                <table class="custom-table" id="user-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Birth Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${user.id}</td>
+                            <td>${user.username}</td>
+                            <td>${user.first}</td>
+                            <td>${user.last}</td>
+                            <td>${user.birth}</td>
+                            <td>
+                                <a href="#" class="edit-btn">
+                                    Edit
+                                </a>
+                                <a href="#" class="delete-btn">
+                                    Delete
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="pagination"></div>
+        </main>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Example dataset (later can be fetched from PHP/MySQL)
+            const users = [
+                {id: 1, username: 'admin', first: 'John', last: 'Doe', birth: '1990-05-12'},
+                {id: 2, username: 'maria', first: 'Maria', last: 'Smith', birth: '1995-03-24'},
+                {id: 3, username: 'robert', first: 'Robert', last: 'Brown', birth: '1988-11-02'},
+                {id: 4, username: 'kate', first: 'Kate', last: 'Johnson', birth: '2001-06-18'},
+                {id: 5, username: 'lukas', first: 'Lukas', last: 'Nowak', birth: '1992-01-10'},
+                {id: 6, username: 'eva', first: 'Eva', last: 'Kowalska', birth: '1998-09-07'},
+                {id: 7, username: 'peter', first: 'Peter', last: 'Miller', birth: '1993-04-16'},
+                {id: 8, username: 'anna', first: 'Anna', last: 'Taylor', birth: '1989-12-25'},
+                {id: 9, username: 'mark', first: 'Mark', last: 'Lee', birth: '1991-07-09'},
+                {id: 10, username: 'susan', first: 'Susan', last: 'Davis', birth: '2000-02-14'},
+                {id: 11, username: 'paul', first: 'Paul', last: 'Harris', birth: '1997-10-11'}
+            ];
+
+            const rowsPerPage = 5;
+            let currentPage = 1;
+            let filteredUsers = [...users];
+
+            // Render table rows
+            function renderTable(page = 1) {
+                const tbody = $('#user-table tbody');
+                tbody.empty();
+
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const pageData = filteredUsers.slice(start, end);
+
+                if (pageData.length === 0) {
+                    tbody.append('<tr><td colspan="6" style="text-align:center;">No users found</td></tr>');
+                    return;
+                }
+
+                pageData.forEach(user => {
+                    tbody.append(`
+                    <tr>
+                        <td>${user.id}</td>
+                        <td>${user.username}</td>
+                        <td>${user.first}</td>
+                        <td>${user.last}</td>
+                        <td>${user.birth}</td>
+                        <td>
+                            <a href="#" class="edit-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-pencil-icon lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                                Edit
+                            </a>
+                            <a href="#" class="delete-btn">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-trash2-icon lucide-trash-2"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                Delete
+                            </a>
+                        </td>
+                    </tr>
+                `);
+                });
+            }
+
+            // Render pagination buttons
+            function renderPagination() {
+                const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+                const paginationDiv = $('#pagination');
+                paginationDiv.empty();
+
+                if (totalPages <= 1) return;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = $('<button></button>').text(i);
+                    if (i === currentPage) btn.addClass('active');
+                    btn.on('click', function() {
+                        currentPage = i;
+                        renderTable(currentPage);
+                        renderPagination();
+                    });
+                    paginationDiv.append(btn);
+                }
+            }
+
+            // Search functionality
+            $('#search-btn').on('click', function() {
+                const term = $('#search').val().toLowerCase();
+                filteredUsers = users.filter(u =>
+                    u.username.toLowerCase().includes(term) ||
+                    u.first.toLowerCase().includes(term) ||
+                    u.last.toLowerCase().includes(term)
+                );
+                currentPage = 1;
+                renderTable();
+                renderPagination();
+            });
+
+            // Enter key triggers search
+            $('#search').on('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    $('#search-btn').click();
+                }
+            });
+
+            // Initial render
+            renderTable();
+            renderPagination();
+        });
+    </script>
+</body>
+</html>

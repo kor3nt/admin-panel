@@ -1,21 +1,68 @@
 version: '3.8'
+
 services:
-    web:
-        image: php:7.4-apache
-        ports:
-            - "8080:80"
-        volumes:
-            - ./www:/var/www/html
+  # Apache + PHP 7.4
+  panel-web:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: panel-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
+    working_dir: /var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_HOST=panel-db
+      - DB_DATABASE=panel_testdb
+      - DB_USERNAME=panel_user
+      - DB_PASSWORD=panel_password
+    networks:
+      - panel-net
+    depends_on:
+      - panel-db
 
-    db:
-        image: mysql:5.7
-        environment:
-            MYSQL_ROOT_PASSWORD: root
-            MYSQL_DATABASE: testdb
+  # MySQL 5.7
+  panel-db:
+    platform: linux/amd64
+    image: mysql:5.7
+    container_name: panel-db
+    environment:
+      MYSQL_ROOT_PASSWORD: panel_root
+      MYSQL_DATABASE: panel_testdb
+      MYSQL_USER: panel_user
+      MYSQL_PASSWORD: panel_password
+    volumes:
+      - panel-mysql-data:/var/lib/mysql
+    networks:
+      - panel-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        ports:
-            - "8081:80"
-        environment:
-            PMA_HOST: db
+  # phpMyAdmin
+  panel-phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: panel-phpmyadmin
+    environment:
+      PMA_HOST: panel-db
+      PMA_USER: root
+      PMA_PASSWORD: panel_root
+    ports:
+      - "8081:80"
+    depends_on:
+      - panel-db
+    networks:
+      - panel-net
+
+volumes:
+  panel-mysql-data:
+
+networks:
+  panel-net:
+    driver: bridge
