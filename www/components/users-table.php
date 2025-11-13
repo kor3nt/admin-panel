@@ -72,25 +72,50 @@ ob_start();
                 </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>${user.id}</td>
-                        <td>${user.username}</td>
-                        <td>${user.first}</td>
-                        <td>${user.last}</td>
-                        <td>${user.birth}</td>
-                        <td>
-                            <a href="#" class="edit-btn">
-                                Edit
-                            </a>
-                            <a href="#" class="delete-btn">
-                                Delete
-                            </a>
-                        </td>
-                    </tr>
+                    <?php
+                        // Show records or empty
+                        if ($totalRows > 0) {
+                            while($row = $result->fetch_assoc()){
+                                echo "<tr>
+                                        <td>".$row['id']."</td>
+                                        <td>".$row['username']."</td>
+                                        <td>".$row['name']."</td>
+                                        <td>".$row['surname']."</td>
+                                        <td>".$row['birthday']."</td>
+                                        <td>
+                                           <a href='#' class='edit-btn'>
+                                                Edit
+                                            </a>
+                                            <a href='#' class='delete-btn'>
+                                                Delete
+                                            </a>
+                                        </td>
+                                    </tr>";
+                            }
+                        } else {
+                            echo "<tr>
+                                    <td colspan='6' class='text-center'>No records</td>
+                                </tr>";
+                        }
+                    ?>
                 </tbody>
             </table>
         </div>
 
-        <div id="pagination"></div>
+        <div id="pagination">
+            <?php
+            // Pagination
+            $baseUrl = '?';
+            if (!empty($search)) {
+                $baseUrl .= 'search=' . urlencode($search) . '&';
+            }
+
+            for ($i = 1; $i <= $totalPages; $i++) {
+
+                $active = ($i == $page) ? 'active' : '';
+                echo "<a href='{$baseUrl}page=$i' class='$active'>$i</a>";
+            }
+            ?>
+        </div>
     </main>
 </div>

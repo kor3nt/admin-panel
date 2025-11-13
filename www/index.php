@@ -1,7 +1,8 @@
 <?php
 //require_once "./components/login.php";
 require_once "./components/nav.php";
-require_once "./components/groups-table.php";
+//require_once "./components/groups-table.php";
+require_once "./components/users-table.php";
 
 $title = isset($title) ? $title.' | ' : '';
 ?>
