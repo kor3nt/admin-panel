@@ -29,7 +29,7 @@ $totalRows = $countRow['total'];
 $totalPages = ceil($totalRows / $resultsPerPage);
 
 // Get results
-$query = "SELECT * FROM `users` $where LIMIT $resultsPerPage OFFSET $offset";
+$query = "SELECT * FROM `users` $where ORDER BY id LIMIT $resultsPerPage OFFSET $offset";
 $result = $connect->query($query);
 stop_connection($connect);
 $title = "Users list";
@@ -82,7 +82,7 @@ ob_start();
                                        <a href='/user/".$row['id']."/edit'  class='edit-btn'>
                                             Edit
                                         </a>
-                                        <a href='/group/".$row['id']."/delete'  class='delete-btn'>
+                                        <a href='/user/".$row['id']."/delete'  class='delete-btn'>
                                             Delete
                                         </a>
                                     </td>

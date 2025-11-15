@@ -13,7 +13,7 @@ docker compose down -v
 
 ## Configuration
 1. Start dockers
-2. Import database files - file ```panel-admin.sql```
+2. Import database - file ```panel_testdb.sql```
 
 ## User
 Login ```admin```

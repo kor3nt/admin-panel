@@ -27,7 +27,7 @@ $totalRows = $countRow['total'];
 $totalPages = ceil($totalRows / $resultsPerPage);
 
 // Get results
-$query = "SELECT * FROM `groups` $where LIMIT $resultsPerPage OFFSET $offset";
+$query = "SELECT * FROM `groups` $where ORDER BY id LIMIT $resultsPerPage OFFSET $offset";
 $result = $connect->query($query);
 stop_connection($connect);
 $title = "Groups list";

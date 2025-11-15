@@ -28,6 +28,7 @@ $query = "
     FROM groups g
     JOIN users_groups ug ON g.id = ug.group_id
     WHERE ug.user_id = ?
+    ORDER BY g.id
 ";
 
 $stmt = $connect->prepare($query);
