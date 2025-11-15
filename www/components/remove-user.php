@@ -19,7 +19,6 @@ $stmt = $connect->prepare("
 $stmt->bind_param("ii", $userId, $groupId);
 $stmt->execute();
 $stmt->close();
-
 stop_connection($connect);
 
 // Redirect

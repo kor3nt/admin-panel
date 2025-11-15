@@ -1,5 +1,6 @@
 <?php
 require_once './functions/connection.php';
+
 $connect = start_connection();
 
 if (!isset($_GET["id"]) || !ctype_digit($_GET["id"])) {
@@ -21,9 +22,7 @@ if (!$user) {
 }
 
 // Fetch all groups
-$groups = $connect->query("
-    SELECT id, name FROM groups ORDER BY name ASC
-")->fetch_all(MYSQLI_ASSOC);
+$groups = $connect->query("SELECT id, name FROM groups ORDER BY name ASC")->fetch_all(MYSQLI_ASSOC);
 
 // Fetch user assigned groups
 $stmt = $connect->prepare("SELECT group_id FROM users_groups WHERE user_id = ?");
@@ -35,7 +34,6 @@ $stmt->close();
 
 // Save on POST
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
     $selected = $_POST["groups"] ?? [];
 
     // Remove old assignments
@@ -46,21 +44,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Insert new
     $stmt = $connect->prepare("INSERT INTO users_groups (user_id, group_id) VALUES (?, ?)");
+
     foreach ($selected as $gid) {
         $gid = (int)$gid;
         $stmt->bind_param("ii", $userId, $gid);
         $stmt->execute();
     }
+
     $stmt->close();
-
     stop_connection($connect);
-
     header("Location: /user/$userId");
     exit;
 }
 
 $title = "Assign Groups";
-
 ob_start();
 ?>
 

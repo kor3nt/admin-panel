@@ -1,6 +1,4 @@
 <?php
-$title = "Groups list";
-
 require_once './functions/connection.php';
 
 $connect = start_connection();
@@ -14,8 +12,8 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Build query
 $offset = ($page - 1) * $resultsPerPage;
-
 $where = "";
+
 if (!empty($search)) {
     $safeSearch = $connect->real_escape_string($search);
     $where = "WHERE name LIKE '%$safeSearch%'";
@@ -31,9 +29,8 @@ $totalPages = ceil($totalRows / $resultsPerPage);
 // Get results
 $query = "SELECT * FROM `groups` $where LIMIT $resultsPerPage OFFSET $offset";
 $result = $connect->query($query);
-
 stop_connection($connect);
-
+$title = "Groups list";
 ob_start();
 ?>
 <header>
@@ -74,7 +71,7 @@ ob_start();
                                     <td>".$row['id']."</td>
                                     <td>".$row['name']."</td>
                                     <td>
-                                       <a href='/group/".$row['id']."/edit' class='edit-btn'>
+                                        <a href='/group/".$row['id']."/edit' class='edit-btn'>
                                             Edit
                                         </a>
                                         <a href='/group/".$row['id']."/delete'  class='delete-btn'>
@@ -102,7 +99,6 @@ ob_start();
             }
 
             for ($i = 1; $i <= $totalPages; $i++) {
-
                 $active = ($i == $page) ? 'active' : '';
                 echo "<a href='{$baseUrl}number=$i' class='$active'>$i</a>";
             }

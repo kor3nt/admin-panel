@@ -57,7 +57,6 @@ function insertUser(mysqli $db, array $values, string $password): void {
 
 // Update user's data
 function updateUser(mysqli $db, int $id, array $values, ?string $password): void {
-
     if ($password) {
         $hash = password_hash($password, PASSWORD_DEFAULT);
 
@@ -135,6 +134,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     foreach ($values as $key => $_) {
         $values[$key] = trim($_POST[$key] ?? "");
     }
+
     $password = trim($_POST["password"] ?? "");
 
     // Validation
@@ -188,7 +188,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 
 $title = $isEdit ? "Edit user" : "Create user";
-
 ob_start();
 ?>
 <main>

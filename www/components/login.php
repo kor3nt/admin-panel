@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 require_once './functions/connection.php';
 
 $connect = start_connection();
@@ -11,14 +12,12 @@ if (isset($_SESSION["user_id"])) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
     $username = trim($_POST["username"] ?? "");
     $password = $_POST["password"] ?? "";
 
     if ($username === "" || $password === "") {
         $error = "All fields are required.";
     } else {
-
         // Pobranie usera
         $stmt = $connect->prepare("SELECT id, username, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
@@ -32,7 +31,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             // Login OK
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["username"] = $user["username"];
-
             header("Location: /users");
             exit;
         }

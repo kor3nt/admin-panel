@@ -20,9 +20,9 @@ if (!isset($_SESSION["user_id"]) && !in_array($entity, $publicPages)) {
 
 require_once "./components/nav.php";
 
-// ROUTES
+// Routes
 $routes = [
-    // USERS
+    // Users
     "user" => [
         null => "user.php", // /user/{user_id} -> view
         "edit" => "user-form.php", // /user/{user_id}/edit
@@ -31,7 +31,7 @@ $routes = [
         "create" => "user-form.php", // /user/create
     ],
 
-    // GROUPS
+    // Groups
     "group" => [
         null => "group.php", // /group/{group_id}
         "edit" => "group-form.php", // /group/{group_id}/edit
@@ -41,16 +41,18 @@ $routes = [
         "remove-user" => "remove-user.php", // /group/{group_id}/remove-user/{user_id}
     ],
 
-    // LIST VIEWS
+    // List view
     "users" => "users-table.php",
     "groups" => "groups-table.php",
 
-    // LOGIN
+    // Login
     "login" => "login.php",
+    
+    // Logout
     "logout" => "logout.php",
 ];
 
-// ROUTE RESOLUTION
+// Route resolution
 if (!isset($routes[$entity])) {
     http_response_code(404);
     die("404 – Invalid entity");
@@ -58,7 +60,7 @@ if (!isset($routes[$entity])) {
 
 $target = $routes[$entity];
 
-// Table? is array?
+// Check is array
 if (is_array($target)) {
 
     // Create /user/create (without id)
@@ -107,10 +109,12 @@ $title = isset($title) ? $title . " | " : "";
 </head>
 <body>
 
+<!-- If login -->
 <?php if (!empty($_SESSION["user_id"])): ?>
     <?= $navbar ?>
 <?php endif; ?>
 
+<!-- Show body -->
 <?= $body ?>
 </body>
 </html>

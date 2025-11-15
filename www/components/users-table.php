@@ -1,6 +1,4 @@
 <?php
-$title = "Users list";
-
 require_once './functions/connection.php';
 
 $connect = start_connection();
@@ -33,9 +31,8 @@ $totalPages = ceil($totalRows / $resultsPerPage);
 // Get results
 $query = "SELECT * FROM `users` $where LIMIT $resultsPerPage OFFSET $offset";
 $result = $connect->query($query);
-
 stop_connection($connect);
-
+$title = "Users list";
 ob_start();
 ?>
 <header>

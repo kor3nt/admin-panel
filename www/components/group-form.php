@@ -6,9 +6,7 @@ $connect = start_connection();
 
 // Find group by id
 function findGroupById(mysqli $db, int $id): ?array {
-    $stmt = $db->prepare("
-        SELECT name FROM groups WHERE id = ?
-    ");
+    $stmt = $db->prepare("SELECT name FROM groups WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -21,16 +19,10 @@ function findGroupById(mysqli $db, int $id): ?array {
 // Check unique for group name
 function groupNameExists(mysqli $db, string $name, ?int $ignoreId = null): bool {
     if ($ignoreId) {
-        $stmt = $db->prepare("
-            SELECT id FROM groups WHERE name = ? AND id != ?
-        ");
-
+        $stmt = $db->prepare("SELECT id FROM groups WHERE name = ? AND id != ?");
         $stmt->bind_param("si", $name, $ignoreId);
     } else {
-        $stmt = $db->prepare("
-            SELECT id FROM groups WHERE name = ?
-        ");
-
+        $stmt = $db->prepare("SELECT id FROM groups WHERE name = ?");
         $stmt->bind_param("s", $name);
     }
 
@@ -44,10 +36,7 @@ function groupNameExists(mysqli $db, string $name, ?int $ignoreId = null): bool 
 
 // Insert group
 function insertGroup(mysqli $db, string $name): void {
-    $stmt = $db->prepare("
-        INSERT INTO groups (name) VALUES (?)
-    ");
-
+    $stmt = $db->prepare("INSERT INTO groups (name) VALUES (?)");
     $stmt->bind_param("s", $name);
     $stmt->execute();
     $stmt->close();
@@ -55,10 +44,7 @@ function insertGroup(mysqli $db, string $name): void {
 
 // Update group
 function updateGroup(mysqli $db, int $id, string $name): void {
-    $stmt = $db->prepare("
-        UPDATE groups SET name = ? WHERE id = ?
-    ");
-
+    $stmt = $db->prepare("UPDATE groups SET name = ? WHERE id = ?");
     $stmt->bind_param("si", $name, $id);
     $stmt->execute();
     $stmt->close();
@@ -85,7 +71,6 @@ if (isset($_GET["id"]) && ctype_digit($_GET["id"])) {
 
 // Check if post method
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-
     $values["name"] = trim($_POST["name"] ?? "");
 
     // Validation
@@ -114,7 +99,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $title = $isEdit ? "Edit group" : "Create group";
-
 ob_start();
 ?>
 

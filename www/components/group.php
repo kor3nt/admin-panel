@@ -35,9 +35,7 @@ $stmt->bind_param("i", $groupId);
 $stmt->execute();
 $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
-
 $title = "Group details";
-
 ob_start();
 ?>
 

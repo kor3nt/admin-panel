@@ -15,7 +15,6 @@ $stmt = $connect->prepare("DELETE FROM groups WHERE id = ?");
 $stmt->bind_param("i", $userId);
 $stmt->execute();
 $stmt->close();
-
 stop_connection($connect);
 
 // Redirect back to list

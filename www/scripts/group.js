@@ -1,4 +1,5 @@
 $(document).ready(function () {
+    // Adding event for table users - direct to group page 
     $("#group-table tbody tr").on("click", function (e) {
         if ($(e.target).is("a")) return;
 
