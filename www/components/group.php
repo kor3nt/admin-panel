@@ -3,7 +3,7 @@ require_once './functions/connection.php';
 
 $connect = start_connection();
 
-// Load group by ic
+// Load group by id
 if (!isset($_GET["id"]) || !ctype_digit($_GET["id"])) {
     die("Invalid group ID.");
 }
@@ -22,7 +22,7 @@ if (!$group) {
     die("Group not found.");
 }
 
-// Group users (JOIN pivot)
+// Group users (join pivot)
 $query = "
     SELECT u.id, u.username, u.name, u.surname, u.birthday
     FROM users u

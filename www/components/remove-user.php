@@ -3,7 +3,7 @@ require_once __DIR__ . '/../functions/connection.php';
 
 $connect = start_connection();
 
-// Router ustawił:
+// Setting route
 $groupId = isset($_GET["id"]) ? (int) $_GET["id"] : null;
 $userId  = isset($_GET["extra"]) ? (int) $_GET["extra"] : null;
 
@@ -11,6 +11,7 @@ if (!$groupId || !$userId) {
     die("Invalid parameters.");
 }
 
+// Deleting record from table
 $stmt = $connect->prepare("
     DELETE FROM users_groups
     WHERE user_id = ? AND group_id = ?
