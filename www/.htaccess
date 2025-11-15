@@ -1,0 +1,16 @@
+# Loading all sites for index.php?=page
+RewriteEngine On
+
+# If the error is NOT a file or folder issue, redirect to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+RewriteRule ^(.*)$ index.php?path=$1 [L,QSA]
+
+# Disable directory listing
+Options -Indexes
+
+# Secure sensitive files
+<FilesMatch "\.(env|ini|log|sql|bak|config|json)$">
+    Require all denied
+</FilesMatch>

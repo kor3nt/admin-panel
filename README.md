@@ -14,3 +14,8 @@ docker compose down -v
 ## Configuration
 1. Start dockers
 2. Import database files - file ```panel-admin.sql```
+
+## User
+Login ```admin```
+
+Passowrd ```password```
