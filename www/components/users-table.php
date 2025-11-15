@@ -1,55 +1,93 @@
 <?php
 require_once './functions/connection.php';
 
+session_start();
 $connect = start_connection();
 
 // Limit per page
 $resultsPerPage = 5;
 
-// Params for url
+// Page param
 $page = isset($_GET['number']) && is_numeric($_GET['number']) ? (int) $_GET['number'] : 1;
+if ($page < 1) $page = 1;
+
+// Search param
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
-
-// Build query
-$offset = ($page - 1) * $resultsPerPage;
-
-$where = "";
-if (!empty($search)) {
-    $safeSearch = $connect->real_escape_string($search);
-    $where = "WHERE username LIKE '%$safeSearch%'
-        OR name LIKE '%$safeSearch%'
-        OR surname LIKE '%$safeSearch%'";
+if (strlen($search) > 100) {
+    $search = substr($search, 0, 100);
 }
 
-// Count results
-$countQuery = "SELECT COUNT(*) as total FROM `users` $where";
-$countResult = $connect->query($countQuery);
-$countRow = $countResult->fetch_assoc();
-$totalRows = $countRow['total'];
-$totalPages = ceil($totalRows / $resultsPerPage);
+// Build WHERE + prepared statement params
+$where = "";
+$params = [];
+$types = "";
 
-// Get results
-$query = "SELECT * FROM `users` $where ORDER BY id LIMIT $resultsPerPage OFFSET $offset";
-$result = $connect->query($query);
+if ($search !== "") {
+    $where = "WHERE username LIKE ? OR name LIKE ? OR surname LIKE ?";
+    $like = "%$search%";
+    $params = [$like, $like, $like];
+    $types = "sss";
+}
+
+// Count total rows
+$sqlCount = "SELECT COUNT(*) AS total FROM users $where";
+$stmt = $connect->prepare($sqlCount);
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$totalRows = $stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
+
+$totalPages = max(1, ceil($totalRows / $resultsPerPage));
+if ($page > $totalPages) $page = $totalPages;
+
+// Fetch rows
+$offset = ($page - 1) * $resultsPerPage;
+
+$sqlList = "
+    SELECT id, username, name, surname, birthday 
+    FROM users
+    $where
+    ORDER BY id
+    LIMIT $resultsPerPage OFFSET $offset
+";
+
+$stmt = $connect->prepare($sqlList);
+
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
 stop_connection($connect);
+
 $title = "Users list";
+
+require_once "./components/pagination.php";
+
 ob_start();
 ?>
+
 <header>
     <h1>User Management</h1>
 
     <div class="header-actions">
         <a href="/user/create" id="add-btn" class="primary-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24">
+                <path d="M5 12h14"/><path d="M12 5v14"/>
+            </svg>
             Create User
         </a>
 
         <form method="GET" class="search-box">
-            <input type="text" name="search" id="search" placeholder="Search...">
-            <button type="submit" class="primary-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                Search
-            </button>
+            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search...">
+            <button type="submit" class="primary-btn">Search</button>
         </form>
     </div>
 </header>
@@ -57,66 +95,56 @@ ob_start();
 <main>
     <div class="table-container">
         <table class="custom-table" id="user-table">
+
             <thead>
             <tr>
                 <th>ID</th>
                 <th>Username</th>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Birth Date</th>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Birth date</th>
                 <th>Actions</th>
             </tr>
             </thead>
+
             <tbody>
-                <?php
-                    // Show records or empty
-                    if ($totalRows > 0) {
-                        while($row = $result->fetch_assoc()){
-                            echo "<tr data-id=".$row["id"].">
-                                    <td>".$row['id']."</td>
-                                    <td>".$row['username']."</td>
-                                    <td>".$row['name']."</td>
-                                    <td>".$row['surname']."</td>
-                                    <td>".date('d.m.Y', strtotime($row['birthday']))."</td>
-                                    <td>
-                                       <a href='/user/".$row['id']."/edit'  class='edit-btn'>
-                                            Edit
-                                        </a>
-                                        <a href='/user/".$row['id']."/delete'  class='delete-btn'>
-                                            Delete
-                                        </a>
-                                    </td>
-                                </tr>";
-                        }
-                    } else {
-                        echo "<tr>
-                                <td colspan='6' class='text-center'>No records</td>
-                            </tr>";
-                    }
-                ?>
+            <?php if ($totalRows > 0): ?>
+                <?php foreach ($users as $u): ?>
+                    <tr data-id="<?= $u["id"] ?>">
+                        <td><?= (int)$u['id'] ?></td>
+                        <td><?= htmlspecialchars($u['username']) ?></td>
+                        <td><?= htmlspecialchars($u['name']) ?></td>
+                        <td><?= htmlspecialchars($u['surname']) ?></td>
+                        <td><?= htmlspecialchars(date('d.m.Y', strtotime($u['birthday']))) ?></td>
+
+                        <td>
+                            <a href="/user/<?= $u['id'] ?>/edit" class="edit-btn">Edit</a>
+                            <a href="/user/<?= $u['id'] ?>/delete" class="delete-btn">Delete</a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+
+            <?php else: ?>
+                <tr>
+                    <td colspan="6" class="text-center">No records</td>
+                </tr>
+            <?php endif; ?>
             </tbody>
+
         </table>
     </div>
 
     <div id="pagination">
-        <?php
-            // Pagination
-            $baseUrl = '?';
-            if (!empty($search)) {
-                $baseUrl .= 'search=' . urlencode($search) . '&';
-            }
-
-            for ($i = 1; $i <= $totalPages; $i++) {
-
-                $active = ($i == $page) ? 'active' : '';
-                echo "<a href='{$baseUrl}number=$i' class='$active'>$i</a>";
-            }
-        ?>
+        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <a href="<?= pageUrl($i, $search) ?>" class="<?= ($i == $page) ? 'active' : '' ?>">
+                <?= $i ?>
+            </a>
+        <?php endfor; ?>
     </div>
+
 </main>
 
 <script src="/scripts/user.js"></script>
-
 
 <?php
 $body = ob_get_clean();

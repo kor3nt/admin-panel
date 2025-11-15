@@ -1,54 +1,86 @@
 <?php
 require_once './functions/connection.php';
 
+session_start();
 $connect = start_connection();
 
-// Limit per page
+// Limit
 $resultsPerPage = 5;
 
-// Params for url
+// Page number
 $page = isset($_GET['number']) && is_numeric($_GET['number']) ? (int) $_GET['number'] : 1;
+if ($page < 1) $page = 1;
+
+// Search
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if (strlen($search) > 100) $search = substr($search, 0, 100);
 
-// Build query
-$offset = ($page - 1) * $resultsPerPage;
+// Build WHERE
 $where = "";
+$params = [];
+$types = "";
 
-if (!empty($search)) {
-    $safeSearch = $connect->real_escape_string($search);
-    $where = "WHERE name LIKE '%$safeSearch%'";
+if ($search !== "") {
+    $where = "WHERE name LIKE ?";
+    $params[] = "%$search%";
+    $types .= "s";
 }
 
-// Count results
-$countQuery = "SELECT COUNT(*) as total FROM `groups` $where";
-$countResult = $connect->query($countQuery);
-$countRow = $countResult->fetch_assoc();
-$totalRows = $countRow['total'];
-$totalPages = ceil($totalRows / $resultsPerPage);
+// Count total rows
+$sqlCount = "SELECT COUNT(*) AS total FROM `groups` $where";
+$stmt = $connect->prepare($sqlCount);
 
-// Get results
-$query = "SELECT * FROM `groups` $where ORDER BY id LIMIT $resultsPerPage OFFSET $offset";
-$result = $connect->query($query);
+if (!empty($types)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$totalRows = $stmt->get_result()->fetch_assoc()["total"];
+$stmt->close();
+
+$totalPages = max(1, ceil($totalRows / $resultsPerPage));
+if ($page > $totalPages) $page = $totalPages;
+
+// Fetch rows
+$offset = ($page - 1) * $resultsPerPage;
+$sqlList = "SELECT id, name FROM `groups` $where ORDER BY id LIMIT $resultsPerPage OFFSET $offset";
+
+$stmt = $connect->prepare($sqlList);
+
+if (!empty($types)) {
+    $stmt->bind_param($types, ...$params);
+}
+
+$stmt->execute();
+$groups = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt->close();
+
 stop_connection($connect);
+
 $title = "Groups list";
+
+require_once "./components/pagination.php";
+
 ob_start();
 ?>
+
 <header>
     <h1>Group Management</h1>
 
     <div class="header-actions">
+
         <a href="/group/create" id="add-btn" class="primary-btn">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus-icon lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
             Create group
         </a>
 
         <form method="GET" class="search-box">
-            <input type="text" name="search" id="search" placeholder="Search...">
+            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search...">
             <button type="submit" class="primary-btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-icon lucide-search"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
-                <span>Search</span>
+                Search
             </button>
         </form>
+
     </div>
 </header>
 
@@ -56,54 +88,43 @@ ob_start();
     <div class="table-container">
         <table class="custom-table" id="group-table">
             <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Actions</th>
-            </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
             </thead>
+
             <tbody>
-                <?php
-                    // Show records or empty
-                    if ($totalRows > 0) {
-                        while($row = $result->fetch_assoc()){
-                            echo "<tr data-id=".$row["id"].">
-                                    <td>".$row['id']."</td>
-                                    <td>".$row['name']."</td>
-                                    <td>
-                                        <a href='/group/".$row['id']."/edit' class='edit-btn'>
-                                            Edit
-                                        </a>
-                                        <a href='/group/".$row['id']."/delete'  class='delete-btn'>
-                                            Delete
-                                        </a>
-                                    </td>
-                                </tr>";
-                        }
-                    } else {
-                        echo "<tr>
-                                <td colspan='3' class='text-center'>No records</td>
-                            </tr>";
-                    }
-                ?>
+                <?php if ($totalRows > 0): ?>
+                    <?php foreach ($groups as $g): ?>
+                        <tr data-id="<?= $g["id"] ?>">
+                            <td><?= (int)$g['id'] ?></td>
+                            <td><?= htmlspecialchars($g['name']) ?></td>
+                            <td>
+                                <a href="/group/<?= $g['id'] ?>/edit" class="edit-btn">Edit</a>
+                                <a href="/group/<?= $g['id'] ?>/delete" class="delete-btn">Delete</a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="3" class="text-center">No records</td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
+
         </table>
     </div>
 
     <div id="pagination">
-        <?php
-            // Pagination
-            $baseUrl = '?';
-            if (!empty($search)) {
-                $baseUrl .= 'search=' . urlencode($search) . '&';
-            }
-
-            for ($i = 1; $i <= $totalPages; $i++) {
-                $active = ($i == $page) ? 'active' : '';
-                echo "<a href='{$baseUrl}number=$i' class='$active'>$i</a>";
-            }
-        ?>
+        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+            <a href="<?= pageUrl($i, $search) ?>" class="<?= $i == $page ? 'active' : '' ?>">
+                <?= $i ?>
+            </a>
+        <?php endfor; ?>
     </div>
+
 </main>
 
 <script src="/scripts/group.js"></script>
