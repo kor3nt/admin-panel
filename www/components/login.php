@@ -11,24 +11,27 @@ if (isset($_SESSION["user_id"])) {
     exit;
 }
 
+// Checking method is post
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $username = trim($_POST["username"] ?? "");
     $password = $_POST["password"] ?? "";
 
+    // Validation
     if ($username === "" || $password === "") {
         $error = "All fields are required.";
     } else {
-        // Pobranie usera
+        // Getting user
         $stmt = $connect->prepare("SELECT id, username, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $user = $stmt->get_result()->fetch_assoc();
         $stmt->close();
 
+        // Checking correct of data
         if (!$user || !password_verify($password, $user["password"])) {
             $error = "Invalid username or password.";
         } else {
-            // Login OK
+            // Setting session for user
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["username"] = $user["username"];
             header("Location: /users");
