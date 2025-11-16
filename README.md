@@ -19,3 +19,7 @@ docker compose down -v
 Login ```admin```
 
 Passowrd ```password```
+
+## Links
+* Database: http://localhost:8081/
+* Web (panel): http://localhost:8080/
