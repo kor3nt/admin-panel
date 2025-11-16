@@ -152,6 +152,7 @@ ob_start();
 </main>
 
 <script src="/scripts/user.js"></script>
+<script src="/scripts/delete-action.js"></script>
 
 <?php
 $body = ob_get_clean();
